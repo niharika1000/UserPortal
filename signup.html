@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Sign Up Page</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <style> 
+      body{ margin-top: 100; }
+      input[type="text"],input[type="button"],input[type="submit"],input[type="file"]{ 
+          font-size:30px; font-family:Georgia }
+      .labels label{ font:30px Arial; }
+      .mypage{ margin-top: 100px; margin-right:200px ; margin-left:200px; background-color: blanchedalmond ;}
+</style>
+  </head>
+
+
+  <body>
+    <div class="mypage">
+
+    <h1 style="text-align:center; font-size:80px; color: green; font-family: Georgia;"><b>Sign Up</b></h1>
+
+    <div class="labels" style="font-size:30px; ">
+
+    <form id="register_user" action="http://localhost:3000/RegisterUser" method="POST">
+      <div style="font-size:30px; margin-left: 100px;">
+      <label>Enter Username: </label><input type="text" id="uname" required /><br /><br />
+      <label>Set Password: </label><input type="text" id="P" required/><br /><br />
+      <label>Enter E-mail address: </label><input type="text" id="E" required /><br /><br />
+      Your Gender: <br/>
+      <input type="radio" id="M" name="gender" value="Male"><label for="M">Male</label>
+      <input type="radio" id="F" name="gender" value="Female"><label for="F">Female</label>
+      <input type="radio" id="N" name="gender" value="Prefer not to answer" checked="checked">
+      <label for="N">Prefer not to answer</label><br /><br />
+
+    <label for="img">Upload Profile Picure:   </label>
+    <input type="file" id="img" name="ProfilePic" accept="image/*" required>
+    <input type="submit" value="Create Account"/>
+    <input type="button" value="Back to Sign in" onClick="window.open('./signin.html');"/>
+      </div>
+    
+    </form>
+    <script>console.log(document.getElementById("P")).val() </script>
+
+    <script language="Javascript" type="text/javascript">
+      console.log("hello there")
+      const form = document.getElementById("register_user")
+      console.log(document.getElementById("E").val());
+      form.addEventListener('submit', register)
+      async function register(event1){
+        event1.preventDefault()
+        const username=document.getElementsByTagName('input')[0].val()
+        const password=document.getElementById('P').val()
+        const email=document.getElementById('E').val()
+        const gender=$("input:radio[name=gender]:checked").val()
+        const image=document.getElementById("img").value
+        
+         const result = await fetch('http://localhost:3000/api/RegisterUser',{
+            method:'POST',
+            headers: {'Content-Type':'application/json'},
+            body:JSON.stringify({
+              username,
+              password,
+              email,
+              gender,
+              image
+            }).then((res)=> res.json())
+            })
+            console.log(result.body)
+        }
+    </script>
+
+</div>
+  </body>
+</html>

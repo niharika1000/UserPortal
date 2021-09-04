@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Sign In Page</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <style>
+      input[type="text"],input[type="button"]{ font-size:20px; font-family:"Arial"; }
+      .labels label{ font-size:20px; font-family:"Arial"; }
+      .mypage{ margin-top: 100px; margin-right:200px ; margin-left:200px; background-color:darkcyan;}
+</style>
+  </head>
+
+
+  <body>
+
+    <h1 style="text-align:center;font-size:80px;color:brown;font-family:'Times New Roman"><b>Sign In</b></h1>
+    <div class="labels" style="font-size:30px;">
+      
+    <form" id="user">
+      <div style="font-size:30px; margin-left: 100px;">
+      <label>Enter Username: </label><input id="a" type="text" id="uname" required /><br />
+      <label>Enter Password: </label><input id="a" type="text" id="password" required/><br />
+      <input id="a" type="submit" value="Log In"/>
+    </div>   
+    </form>
+    <script> console.log("hello") </script>
+    <script language="Javascript" type="text/javascript">
+      console.log("hello there");
+      const form = document.getElementById("user")
+      console.log(document.getElementsById("uname").value
+      form.addEventListener('submit', login)
+      async function login(event2){
+        event2.preventDefault()
+        var Username=document.getElementsById("uname").value
+        var Password=document.getElementById("password").value
+        const result = await fetch('http://localhost:3000/api/signin',{
+            method:'GET',
+            headers: {'Content-Type':'application/json'},
+            body:JSON.stringify({
+              Username,
+              Password
+            }).then((res)=> res.json())
+            })
+            console.log(result.body)
+        }
+    </script>
+  </body>
+</html>
