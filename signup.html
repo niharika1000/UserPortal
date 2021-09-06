@@ -21,11 +21,11 @@
 
     <div class="labels" style="font-size:30px; ">
 
-    <form id="register_user" action="http://localhost:3000/RegisterUser" method="POST">
+    <form id="register_user" action="http://localhost:3000/api/RegisterUser" method="POST">
       <div style="font-size:30px; margin-left: 100px;">
-      <label>Enter Username: </label><input type="text" id="uname" required /><br /><br />
-      <label>Set Password: </label><input type="text" id="P" required/><br /><br />
-      <label>Enter E-mail address: </label><input type="text" id="E" required /><br /><br />
+      <label>Enter Username: </label><input type="text" name="username" id="uname" required /><br /><br />
+      <label>Set Password: </label><input type="text" id="P" name="password" required/><br /><br />
+      <label>Enter E-mail address: </label><input type="text" name="emailid" id="E" required /><br /><br />
       Your Gender: <br/>
       <input type="radio" id="M" name="gender" value="Male"><label for="M">Male</label>
       <input type="radio" id="F" name="gender" value="Female"><label for="F">Female</label>
@@ -39,7 +39,7 @@
       </div>
     
     </form>
-    <script>console.log(document.getElementById("P")).val() </script>
+    <script>console.log(document.getElementById("P")).value </script>
 
     <script language="Javascript" type="text/javascript">
       console.log("hello there")
@@ -48,10 +48,10 @@
       form.addEventListener('submit', register)
       async function register(event1){
         event1.preventDefault()
-        const username=document.getElementsByTagName('input')[0].val()
-        const password=document.getElementById('P').val()
-        const email=document.getElementById('E').val()
-        const gender=$("input:radio[name=gender]:checked").val()
+        const username=document.getElementsById('uname').value
+        const password=document.getElementById('P').value
+        const email=document.getElementById('E').value
+        const gender=$("input:radio[name=gender]:checked").value
         const image=document.getElementById("img").value
         
          const result = await fetch('http://localhost:3000/api/RegisterUser',{

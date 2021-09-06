@@ -23,7 +23,20 @@
           onClick="window.open('./signin.html');"
         />
       </div>
-      <input id="a" type="submit" value="View Profile Information" />
+      <input
+        id="a"
+        type="submit"
+        name="Profile"
+        value="View Profile Information"
+      />
+      <script language="Javascript" type="text/javascript">
+        document.getElementsByName("Profile").addEventListener("click", viewprof );
+        async function viewprof(event3){
+          event3.preventDefault()
+          const result = await fetch('http://localhost:3000/api/profile/',{
+              method:'GET'
+          });
+      </script>
     </body>
   </head>
 </html>
