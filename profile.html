@@ -1,42 +1,40 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <title>Profile Page</title>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
-    <style>
-      input[id="a"] {
-        font-size: 30px;
-        font-family: Georgia;
-      }
-      input[type="submit"] {
-        margin-right: 0;
-      }
-    </style>
+<head>
+  <title>Profile info</title>
+</head>
+<body>
+  <input
+    type="button"
+    id="getData"
+    onclick="GetData()"
+    value="View Profile Information"
+  />
+  <a href="/login">Logout</a>
+  <script>
+    console.log(window.location.href);
+    function GetData() {
+      fetch(window.location.href, {
+        method: "get",
+        headers: { "Content-Type": "application/x-www-formurlencoded" },
+        mode: "cors",
+      })
+        .then((response) => {
+          if (response.status !== 200) {
+            console.log(
+              "Looks like there was a problem. Status Code: " + response.status
+            );
+            return;
+          }
 
-    <body style="background-color: darksalmon; margin-top: 100">
-      <div style="text-align: right">
-        <input
-          id="a"
-          type="button"
-          value="Log Out"
-          onClick="window.open('./signin.html');"
-        />
-      </div>
-      <input
-        id="a"
-        type="submit"
-        name="Profile"
-        value="View Profile Information"
-      />
-      <script language="Javascript" type="text/javascript">
-        document.getElementsByName("Profile").addEventListener("click", viewprof );
-        async function viewprof(event3){
-          event3.preventDefault()
-          const result = await fetch('http://localhost:3000/api/profile/',{
-              method:'GET'
-          });
-      </script>
-    </body>
-  </head>
-</html>
+          console.log(response.headers.get("Content-Type"));
+          return response.json();
+        })
+        .then((myJson) => {
+          console.log(JSON.stringify(myJson));
+        })
+        .catch((err) => {
+          console.log("Fetch Error :-S", err);
+        });
+    }
+  </script>
+</body>
