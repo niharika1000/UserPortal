@@ -1,19 +1,41 @@
+
 const express = require('express');
 const path=require('path');
+const dotenv=require("dotenv").config;
 const app = express();
 const port = 3000;
-
-
-app.use(express.json());
-app.get('/', (request, response) => {
-    response.json({ info: 'Welcome to Digital School' });
-  });
-
+const router = express.Router();
 const db = require('./Database.js');
+//const cookie= require('cookie-parser');
+//app.use(cookie());
+//app.use(express.urlencoded({ extended: false }));
+app.use(express.json());
+const jwt = require("jsonwebtoken");
+const authenticate = require("./middleware/auth");
 
-app.post('/api/RegisterUser', db.createUser);
-app.post('/api/signin', db.user);
-app.get('/api/profile/:Username', db.userprofile);
+const bcrypt = require('bcrypt');
+const saltRounds = 10;
+
+app.get("/", (req, res) => {
+  res.status(200).send("Welcome 🙌 to Yikes Technology ");
+}); 
+
+app.get('/login',function(req,res){
+  res.sendFile(path.join(__dirname+'/views/signin.html'));
+  //__dirname : It will resolve to your project folder.
+});
+
+app.get('/register',function(req,res){
+  res.sendFile(path.join(__dirname+'/views/signup.html'));
+});
+
+//add the router
+//app.use('/', router);
+
+app.post('/api/register', db.createUser);
+app.post('/api/login', db.user);
+app.get('/api/profile/:id' ,authenticate, db.userprofile);
+app.post('/api/logout/:id', authenticate, db.logoutuser );
 
 app.listen(port, () => {
     console.log(`App running on port ${port}.`);

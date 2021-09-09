@@ -1,5 +1,13 @@
 const Pool = require('pg').Pool;
-const Yup = require("yup");
+const express = require('express');
+const app = express();
+const url= require('url');
+const jwt = require("jsonwebtoken");
+app.use(express.json());
+
+const bcrypt = require('bcrypt');
+const saltRounds = 10;
+
 const pool = new Pool({
   user: 'niharika',
   host: '127.0.0.1',
@@ -8,64 +16,79 @@ const pool = new Pool({
   port: 5432,
 });
 
-const linkSchema = Yup.object({
-  body: Yup.object().shape({
-    Username: Yup.string().min(8).required(),
-    Password: Yup.string().min(8).max(32).matches(/^[^\s]*$/,"Password should not contain whitespace").required(),
-    Email: Yup.string().email("E-mail address not valid").required(),
-    Gender:Yup.string(),
-    ProfilePic:Yup.object()
-  })
-  });
-const validate = (schema) => async (request,response,next) => 
-{ console.log("hello");
-  try {
-    await schema.validate(
-      { body: request.body });
-    return next();
-  } catch (err) {
-    return response.status(500).json({ type: err.name, message: err.message });
-  }
-}; 
+const createUser = (request, response) => {
+      console.log(request);
+      Body=request.body;
+      const {Username,Password,Email,Gender,ProfilePic} = Body;
 
-const createUser = (validate(linkSchema) ,( request, response) => {
-      const {Username,Password,Email,Gender,ProfilePic} = request.body;
-      pool.query(`select * from public."UINFO" where "Username"= $1`,[Username], (error, results)=>
-    {   
+      if(Username.length<8){ response.status(401).send("Username length must be greater than 8"); return; }
+      if( (/\s/g).test(Username)){ response.status(401).send("Username must not have a space and any special characters"); return; } 
+      if( (/\s/g).test(Password)){ response.status(401).send("Password must not have a space or a special character"); return; }
+      if(  Password.length<8 || Password.length>32){ response.status(401).send("Password length must be greater than 8 and less than 32"); return; }
+      if(! (/^[\w]*@[a-zA-Z]*\.[a-z]*$/g).test(Email)){ response.status(401).send("Invalid Email"); return; }
+      if(! (/^male$|^female$|^others$/gi).test(Gender)){ response.status(401).send("Gender be male, female, or others"); return; } 
+      
+      const Passhash = bcrypt.hashSync(Password,saltRounds);
+
+      pool.query(`select * from public."USER" where "Email"= $1`,[Email], (error, results)=>
+    {  
       if (results.rows.length==0){ 
-        pool.query(`INSERT INTO public."UINFO"("Username", "Password", "Email", "Gender", "ProfilePic")
-        VALUES ($1, $2, $3, $4, $5);`, [ Username,Password,Email,Gender,ProfilePic],(error,results)=>
-        { if (error) {throw error}  console.log("Account created succesfully") })
+        pool.query(`INSERT INTO public."USER"(
+          "Username", "Password", "Email", "Gender", "ProfilePic")
+          VALUES ($1, $2, $3, $4, $5);`, [ Username,Passhash,Email,Gender,ProfilePic],(error,results)=>
+        { if (error) {throw error}  response.json({ message:"Account created succesfully"}); })
       }
-      else { console.log("Username already exists"); response.redirect('./signin.html'); } 
-      response.status(200); 
+      else { return response.json({ message:"User already exists"}); }
     });
-  }
+  };
   
 
-const user = ('/api/signin', (request, response) => {
-  const {Username,Password}=request.body;
-    pool.query('select * from public."UINFO" where "Username"=$1 and "Password"=$2',[Username,Password],(error, results) => {
+const user = ((request, response) => {
+  console.log(request.body);
+  const {Email,Password}=request.body;
+      pool.query('select * from public."USER" where "Email"=$1',[Email],(error, results) => {
       if (error) {throw error}
-      if (results.rows.length==1){
-        response.redirect('profile.html');
+      console.log(results.rows[0]);
+      if (results.rows.length==1)
+      { if(bcrypt.compareSync(Password,results.rows[0].Password)){
+          const token = jwt.sign(
+          { "UserId": results.rows[0].UserId, "Email": Email },
+          "Sherlock",
+          {
+            "expiresIn": "1h",
+          });
+          pool.query('UPDATE public."USER" SET "Token"=$1 WHERE "UserId"=$2;',[token,results.rows[0].UserId],(error, results) => 
+          {if (error) {throw error} });
+        return response.status(200).json({ message: "You logged in successfully", Token: token , UserId: results.rows[0].UserId }); 
       }
-      response.status(200);
+        else { response.status(400).json({ message:"Password is wrong"} ); } // 400 for bad request.
+      }
+      else 
+      { return response.json({ message: "User not registered. You need to create an account. "});}
+    }); 
       
   });
-  });
-  const userprofile = ('/api/profile/:Username', (request, response) => {
-    const para= request.params.Username;
-    pool.query(`select * from public."UINFO" where "Username"=$1`,[para],(error, results) => {
-      if (error) {
-        throw error
-      }
+const userprofile = ( (request, response) => {
+    const ID= request.params.id;
+    pool.query(`select "Username","Email","Gender","ProfilePic" from public."USER" where "UserId"=$1`,[ID],(error, results) => {
+      if (error) { throw error}
       response.status(200).json(results.rows);
     });
   });
 
- module.exports = { 
+const logoutuser = ( (request, response) => {
+    //console.log(request);
+    const ID= request.params.id;
+    pool.query(`UPDATE public."USER"
+    SET "Token"=''
+    WHERE "UserId"=$1;`,[ID],(error, results) => 
+    { if (error) {throw error} 
+        response.status(200).json({ message:"You logged out"});}); 
+    });
+
+module.exports = { 
     createUser,
     user,
-    userprofile
+    userprofile,
+    logoutuser
     };
