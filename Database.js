@@ -21,12 +21,12 @@ const createUser = (request, response) => {
       Body=request.body;
       const {Username,Password,Email,Gender,ProfilePic} = Body;
 
-      if(Username.length<8){ response.status(401).send("Username length must be greater than 8"); return; }
-      if( (/\s/g).test(Username)){ response.status(401).send("Username must not have a space and any special characters"); return; } 
-      if( (/\s/g).test(Password)){ response.status(401).send("Password must not have a space or a special character"); return; }
-      if(  Password.length<8 || Password.length>32){ response.status(401).send("Password length must be greater than 8 and less than 32"); return; }
-      if(! (/^[\w]*@[a-zA-Z]*\.[a-z]*$/g).test(Email)){ response.status(401).send("Invalid Email"); return; }
-      if(! (/^male$|^female$|^others$/gi).test(Gender)){ response.status(401).send("Gender be male, female, or others"); return; } 
+      if(Username.length<8){ response.status(401).json({ message:"Username length must be greater than 8"}); return; }
+      if( (/\s/g).test(Username)){ response.status(401).json({ message:"Username must not have a space and any special characters"}); return; } 
+      if( (/\s/g).test(Password)){ response.status(401).json({ message:"Password must not have a space or a special character"}); return; }
+      if(  Password.length<8 || Password.length>32){ response.status(401).json({ message:"Password length must be greater than 8 and less than 32"}); return; }
+      if(! (/^[\w]*@[a-zA-Z]*\.[a-z]*$/g).test(Email)){ response.status(401).json({ message:"Invalid Email"}); return; }
+      if(! (/^male$|^female$|^others$/gi).test(Gender)){ response.status(401).json({ message:"Gender be male, female, or others"}); return; } 
       
       const Passhash = bcrypt.hashSync(Password,saltRounds);
 
@@ -44,11 +44,10 @@ const createUser = (request, response) => {
   
 
 const user = ((request, response) => {
-  console.log(request.body);
+  //console.log(request.headers);
   const {Email,Password}=request.body;
       pool.query('select * from public."USER" where "Email"=$1',[Email],(error, results) => {
       if (error) {throw error}
-      console.log(results.rows[0]);
       if (results.rows.length==1)
       { if(bcrypt.compareSync(Password,results.rows[0].Password)){
           const token = jwt.sign(
@@ -69,16 +68,18 @@ const user = ((request, response) => {
       
   });
 const userprofile = ( (request, response) => {
-    const ID= request.params.id;
+  console.log(request);  
+  const ID= request.params.UserId;
     pool.query(`select "Username","Email","Gender","ProfilePic" from public."USER" where "UserId"=$1`,[ID],(error, results) => {
       if (error) { throw error}
+      console.log(results);
       response.status(200).json(results.rows);
     });
   });
 
 const logoutuser = ( (request, response) => {
     //console.log(request);
-    const ID= request.params.id;
+    const ID= request.params.UserId;
     pool.query(`UPDATE public."USER"
     SET "Token"=''
     WHERE "UserId"=$1;`,[ID],(error, results) => 

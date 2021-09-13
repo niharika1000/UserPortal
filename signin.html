@@ -1,49 +1,79 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <title>Sign In Page</title>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
-    <style>
-      input[type="text"],input[type="button"]{ font-size:20px; font-family:"Arial"; }
-      .labels label{ font-size:20px; font-family:"Arial"; }
-      
-    </style>
-  </head>
+<head>
+  <title>login Page</title>
+</head>
+<h1>Sign-in</h1>
+<body>
+  <form id="F">
+    <div>
+      <label for="name">Enter Email:</label>
+      <input type="text" id="name" name="Email" required />
+    </div>
+    <div>
+      <label for="pass">Enter Password:</label>
+      <input type="text" id="pass" name="Password" required />
+    </div>
 
+    <button type="submit">Log In</button>
+  </form>
+  <a href="/register">Register</a>
 
-  <body>
+  <script>
+    var Token = "";
+    var id = "";
+    const formToJSON = (elements) =>
+      [].reduce.call(
+        elements,
+        (data, element) => {
+          data[element.name] = element.value;
+          return data;
+        },
+        {}
+      );
 
-    <h1 style="text-align:center;font-size:80px;color:brown;font-family:'Times New Roman"><b>Sign In</b></h1>
-    <div class="labels" style="font-size:30px;">
-      
-    <form" id="user" action="http://localhost:3000/api/signin" method="POST">
-      <div style="font-size:30px; margin-left: 100px;">
-      <label>Enter Username: </label><input id="a" type="text" name="usernam"  required /><br />
-      <label>Enter Password: </label><input id="b" type="text" name= "password" required/><br />
-      <input id="c" type="submit" value="Log In"/>
-    </div>   
-    </form>
-    <script> console.log("hello") </script>
-    <script language="Javascript" type="text/javascript">
-      console.log("hello there");
-      const form = document.getElementById("user")
-      console.log(document.getElementById("a").nodeValue)
-      form.addEventListener('submit', login)
-      async function login(event2){
-        event2.preventDefault()
-        var Username=document.getElementById("a").value
-        var Password=document.getElementById("b").value
-        const result = await fetch('http://localhost:3000/api/signin',{
-            method:'POST',
-            headers: {'Content-Type':'application/json'},
-            body:JSON.stringify({
-              Username,
-              Password
-            }).then((res)=> res.json())
-            })
-            console.log(result.body)
-        }
-    </script>
-  </body>
-</html>
+    const handleSubmit = async (event) => {
+      event.preventDefault();
+      const data = formToJSON(form.elements);
+      console.log(data);
+      let response = await fetch("/api/login", {
+        method: "POST",
+        body: JSON.stringify(data),
+        headers: { "Content-type": "application/json; charset=UTF-8" },
+      });
+      let result = await response.json();
+      console.log(response.ok);
+      Token = result.Token;
+      UserId = result.UserId;
+      alert(result.message);
+
+      canme = "parameters";
+      cvalue = JSON.stringify({ authorization: Token, UserId: UserId });
+      exdays = 0.04166;
+      const d = new Date();
+      d.setTime(d.getTime() + exdays * 24 * 60 * 60 * 1000);
+      console.log(d.toUTCString());
+      var xx = d.toUTCString();
+      document.cookie = `parameters=${cvalue}; expires=${xx}`;
+
+      console.log(document.cookie);
+      window.location.replace(`/profile/${UserId}`);
+      /*if (response.ok) {
+        let res = await fetch(`/profile/${UserId}`, {
+          method: "GET",
+          headers: {
+            "Content-type": "application/json; charset=UTF-8",
+            authorization: Token,
+          },
+        });
+        console.log(res);
+        /* console.log("hello", res.headers);
+        if (res.ok) {
+          window.location.replace(res.url);
+        } 
+      }*/
+    };
+
+    const form = document.getElementById("F");
+    form.addEventListener("submit", handleSubmit);
+  </script>
+</body>

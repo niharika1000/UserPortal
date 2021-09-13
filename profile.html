@@ -1,42 +1,78 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <title>Profile Page</title>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
-    <style>
-      input[id="a"] {
-        font-size: 30px;
-        font-family: Georgia;
-      }
-      input[type="submit"] {
-        margin-right: 0;
-      }
-    </style>
+<head>
+  <title>Profile info</title>
+</head>
+<body>
+  <input
+    type="button"
+    id="getData"
+    onclick="GetData()"
+    value="View Profile Information"
+  />
 
-    <body style="background-color: darksalmon; margin-top: 100">
-      <div style="text-align: right">
-        <input
-          id="a"
-          type="button"
-          value="Log Out"
-          onClick="window.open('./signin.html');"
-        />
-      </div>
-      <input
-        id="a"
-        type="submit"
-        name="Profile"
-        value="View Profile Information"
-      />
-      <script language="Javascript" type="text/javascript">
-        document.getElementsByName("Profile").addEventListener("click", viewprof );
-        async function viewprof(event3){
-          event3.preventDefault()
-          const result = await fetch('http://localhost:3000/api/profile/',{
-              method:'GET'
-          });
-      </script>
-    </body>
-  </head>
-</html>
+  <p id="demo"></p>
+  <p id="demo1"></p>
+  <p id="demo2"></p>
+  <img id="ItemPreview" src="" />
+
+  <input type="button" id="logoutt" onclick="logoutt()" value="Log Out" />
+
+  <script>
+    const c = location.href.split("/").length;
+    const par = location.href.split("/")[c - 1];
+    console.log();
+    var res = null;
+
+    let para = JSON.parse(document.cookie.split("=")[1]);
+
+    async function GetData() {
+      console.log(para.authorization);
+      let resp = await fetch(`/api/profile/${par}`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          authorization: para.authorization,
+        },
+        mode: "cors",
+      });
+      let result = await resp.json();
+
+      document.getElementById("demo").innerHTML =
+        "Username : " + JSON.stringify(result[0].Username);
+      document.getElementById("demo1").innerHTML =
+        "Email : " + JSON.stringify(result[0].Email);
+      document.getElementById("demo2").innerHTML =
+        "Gender : " + JSON.stringify(result[0].Gender);
+      console.log(result[0].ProfilePic.data);
+      data = result[0].ProfilePic.data;
+      function toBase64(arr) {
+        arr = new Uint8Array(arr); //if it's an ArrayBuffer
+        return btoa(
+          arr.reduce((data, byte) => data + String.fromCharCode(byte), "")
+        );
+      }
+
+      const str = toBase64(data);
+      console.log(str);
+      document.getElementById("ItemPreview").src =
+        "data:image/jpeg;base64," + str;
+    }
+    async function logoutt() {
+      let resp2 = await fetch(`/api/logout/${par}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          authorization: para.authorization,
+        },
+        mode: "cors",
+      });
+      let result = await resp2.json();
+      if (resp2.ok) {
+        document.cookie =
+          JSON.stringify(para) + "; Expires= Thu, 01 Jan 1970 00:00:01 GMT;";
+        console.log(document.ccokie);
+        //window.location.replace(`/login`);
+      }
+    }
+  </script>
+</body>
